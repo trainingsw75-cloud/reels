@@ -1,0 +1,34 @@
+name: Утренняя дюжина рилсов
+
+on:
+  schedule:
+    - cron: '45 4 * * *'   # 07:45 по Москве, страница готова к 08:00
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: reels-repo
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Собрать страницу
+        run: python build_reels.py
+
+      - name: Опубликовать
+        run: |
+          git config user.name "reels-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs reels.json
+          git diff --cached --quiet || git commit -m "Дюжина за $(TZ=Europe/Moscow date +%d.%m.%Y)"
+          git push
