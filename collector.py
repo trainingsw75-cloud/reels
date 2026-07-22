@@ -22,6 +22,35 @@ OWNER_ID = 6357249473  # Telegram Романа
 URL_RE = re.compile(r"https?://[^\s]*(?:facebook\.com|fb\.watch)/[^\s]+", re.IGNORECASE)
 
 
+UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+
+
+def clean_url(url):
+    """Обрезает хвосты (?rdid=…, ?mibextid=…) у ссылок на рилсы."""
+    parts = urllib.parse.urlsplit(url)
+    if "/reel/" in parts.path or "/videos/" in parts.path:
+        return urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
+    return url
+
+
+def resolve_share_link(url):
+    """Короткие ссылки /share/r/… плеер Facebook не понимает —
+    разворачиваем их в полные /reel/…"""
+    if "/share/" not in url and "fb.watch" not in url:
+        return clean_url(url)
+    try:
+        req = urllib.request.Request(url, headers=UA)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            final = r.geturl()
+    except Exception as e:
+        print(f"[warn] не развернул {url}: {e}")
+        return url
+    if "login" in final:  # стена логина: целевой адрес лежит в параметре next=
+        qs = urllib.parse.parse_qs(urllib.parse.urlsplit(final).query)
+        final = qs.get("next", [final])[0]
+    return clean_url(final)
+
+
 def api(token, method, **params):
     url = f"https://api.telegram.org/bot{token}/{method}"
     data = urllib.parse.urlencode(params).encode()
@@ -57,7 +86,7 @@ def main():
         if frm != OWNER_ID:
             continue
         text = (msg.get("text") or "") + " " + (msg.get("caption") or "")
-        urls = [u.rstrip(".,;)») ") for u in URL_RE.findall(text)]
+        urls = [resolve_share_link(u.rstrip(".,;)») ")) for u in URL_RE.findall(text)]
         fresh = [u for u in urls if u not in known]
         for u in fresh:
             known.add(u)
