@@ -25,6 +25,17 @@
   .share a { display:inline-block; padding:8px 16px; border-radius:999px; font-size:14px; font-weight:700;
     text-decoration:none; color:#fff; }
   .fb { background:#1877f2; } .tg { background:#2aabee; } .wa { background:#25d366; }
+  .chef { max-width:720px; margin:22px auto 0; padding:0 14px; }
+  .chef .box { background:var(--card); border:1px solid #1e2a44; border-radius:14px; padding:18px;
+    box-shadow:0 10px 26px rgba(0,0,0,.35); }
+  .chef h2 { font-size:19px; margin-bottom:6px; }
+  .chef p { color:var(--dim); font-size:14px; margin-bottom:10px; }
+  .chef textarea { width:100%; min-height:74px; background:#0e1626; color:var(--txt); border:1px solid #2c4470;
+    border-radius:10px; padding:10px 12px; font-size:15px; font-family:inherit; resize:vertical; }
+  .chef .btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .chef button { border:0; border-radius:999px; padding:9px 18px; font-size:14px; font-weight:700;
+    color:#fff; cursor:pointer; }
+  .ask-claude { background:#d97757; } .ask-gpt { background:#10a37f; } .copy { background:#33415e; }
   main { max-width:1100px; margin:0 auto; padding:22px 14px 8px; display:grid;
     grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:18px; }
   .card { background:var(--card); border:1px solid #1e2a44; border-radius:12px; overflow:hidden;
@@ -54,6 +65,19 @@
     <a class="wa" href="https://wa.me/?text=https%3A%2F%2Ftrainingsw75-cloud.github.io%2Freels%2F" target="_blank" rel="noopener">В WhatsApp</a>
   </div>
 </header>
+<section class="chef">
+  <div class="box">
+    <h2>🍳 Генератор рецептов из твоих продуктов</h2>
+    <p>Перечисли, что есть под рукой — искусственный интеллект предложит блюда строго из этих
+    продуктов, с пошаговым приготовлением и заменами.</p>
+    <textarea id="ing" placeholder="Например: курица, рис, лук, морковь, консервированные томаты"></textarea>
+    <div class="btns">
+      <button class="ask-claude" onclick="askAI('claude')">Спросить Claude</button>
+      <button class="ask-gpt" onclick="askAI('gpt')">Спросить ChatGPT</button>
+      <button class="copy" onclick="copyPrompt()">Скопировать запрос</button>
+    </div>
+  </div>
+</section>
 <main>
 
     <article class="card">
@@ -96,6 +120,24 @@
   <p style="margin-top:8px"><img src="https://abacus.jasoncameron.dev/hit/roman-reels/site?bg=0b1220&text=93a1bd" alt="" height="18"></p>
 </footer>
 <script>
+// генератор рецептов: собирает запрос и открывает ИИ с уже заполненным текстом
+function chefPrompt() {
+  var ing = document.getElementById('ing').value.trim() || 'что найдётся в обычном холодильнике';
+  return 'Выступай как генератор рецептов. Ты опытный повар, ценящий находчивость. ' +
+    'Вот мои продукты: ' + ing + '. ' +
+    'Предложи 2-3 практичных блюда строго из этих продуктов, с пошаговым приготовлением, ' +
+    'простыми приёмами и вариантами замен. Отвечай только рецептами, без лишних пояснений.';
+}
+function askAI(kind) {
+  var q = encodeURIComponent(chefPrompt());
+  var url = (kind === 'claude') ? 'https://claude.ai/new?q=' + q : 'https://chatgpt.com/?q=' + q;
+  window.open(url, '_blank', 'noopener');
+}
+function copyPrompt() {
+  navigator.clipboard.writeText(chefPrompt()).then(function () {
+    alert('Запрос скопирован — вставь его в любой ИИ-чат.');
+  });
+}
 // объёмный наклон карточек за курсором (только мышь, на телефоне не мешает)
 document.querySelectorAll('.card').forEach(function (c) {
   c.addEventListener('pointermove', function (e) {
