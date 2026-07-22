@@ -8,10 +8,18 @@
 <style>
   :root { --bg:#0b1220; --card:#141d31; --txt:#e8edf7; --dim:#93a1bd; --pink:#ff2d78; --cyan:#4fc3f7; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.45; }
+  body { background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; line-height:1.45; overflow-x:hidden; }
+  /* живой объёмный фон: плывущие световые пятна */
+  body::before, body::after { content:""; position:fixed; z-index:-1; width:65vmax; height:65vmax; border-radius:50%; filter:blur(90px); opacity:.20; pointer-events:none; }
+  body::before { background:#5b1236; top:-22vmax; left:-18vmax; animation:drift 26s ease-in-out infinite alternate; }
+  body::after { background:#1b3a6b; bottom:-26vmax; right:-16vmax; animation:drift 34s ease-in-out infinite alternate-reverse; }
+  @keyframes drift { from { transform:translate3d(0,0,0) scale(1); } to { transform:translate3d(9vmax,7vmax,0) scale(1.18); } }
   header { padding:28px 16px 18px; text-align:center; background:linear-gradient(180deg,#101a30,var(--bg)); border-bottom:1px solid #1e2a44; }
-  .badge { display:inline-block; background:var(--pink); color:#fff; font-weight:800; letter-spacing:.08em; padding:4px 14px; border-radius:6px; font-size:14px; }
-  h1 { font-size:clamp(24px,5vw,40px); margin:10px 0 4px; } h1 .a { color:var(--pink); }
+  .badge { display:inline-block; background:var(--pink); color:#fff; font-weight:800; letter-spacing:.08em; padding:4px 14px; border-radius:6px; font-size:14px; box-shadow:0 0 18px rgba(255,45,120,.55); animation:pulse 2.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { box-shadow:0 0 10px rgba(255,45,120,.35); } 50% { box-shadow:0 0 26px rgba(255,45,120,.8); } }
+  h1 { font-size:clamp(24px,5vw,40px); margin:10px 0 4px;
+    text-shadow:0 1px 0 #24365c, 0 2px 0 #1f2f51, 0 3px 0 #1a2846, 0 4px 0 #16223c, 0 10px 22px rgba(0,0,0,.6); }
+  h1 .a { color:var(--pink); text-shadow:0 1px 0 #8f1a48, 0 2px 0 #7a163e, 0 3px 0 #651234, 0 4px 0 #500e2a, 0 10px 22px rgba(0,0,0,.6); }
   .date { color:var(--dim); font-size:15px; }
   .share { margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
   .share a { display:inline-block; padding:8px 16px; border-radius:999px; font-size:14px; font-weight:700;
@@ -19,7 +27,14 @@
   .fb { background:#1877f2; } .tg { background:#2aabee; } .wa { background:#25d366; }
   main { max-width:1100px; margin:0 auto; padding:22px 14px 8px; display:grid;
     grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:18px; }
-  .card { background:var(--card); border:1px solid #1e2a44; border-radius:12px; overflow:hidden; }
+  .card { background:var(--card); border:1px solid #1e2a44; border-radius:12px; overflow:hidden;
+    will-change:transform; transition:transform .18s ease, box-shadow .3s ease, border-color .3s ease;
+    box-shadow:0 10px 26px rgba(0,0,0,.35); }
+  .card:hover { box-shadow:0 26px 60px rgba(0,0,0,.55), 0 0 24px rgba(255,45,120,.20); border-color:#452545; }
+  @media (prefers-reduced-motion: reduce) {
+    body::before, body::after, .badge { animation:none; }
+    .card { transition:none; }
+  }
   .frame { position:relative; aspect-ratio:9/16; background:#000; }
   .frame iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
   .open { display:block; padding:10px 14px; color:var(--dim); font-size:13px; text-decoration:none; }
@@ -80,5 +95,18 @@
   официальным плеером Facebook.</p>
   <p style="margin-top:8px"><img src="https://abacus.jasoncameron.dev/hit/roman-reels/site?bg=0b1220&text=93a1bd" alt="" height="18"></p>
 </footer>
+<script>
+// объёмный наклон карточек за курсором (только мышь, на телефоне не мешает)
+document.querySelectorAll('.card').forEach(function (c) {
+  c.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'mouse') return;
+    var r = c.getBoundingClientRect();
+    var x = (e.clientX - r.left) / r.width - 0.5;
+    var y = (e.clientY - r.top) / r.height - 0.5;
+    c.style.transform = 'perspective(900px) rotateY(' + (x * 7).toFixed(2) + 'deg) rotateX(' + (-y * 7).toFixed(2) + 'deg) translateY(-5px)';
+  });
+  c.addEventListener('pointerleave', function () { c.style.transform = ''; });
+});
+</script>
 </body>
 </html>
