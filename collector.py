@@ -36,7 +36,7 @@ def load(path, default):
 
 
 def main():
-    token = os.environ.get("REELS_BOT_TOKEN", "").strip()
+    token = os.environ.get("REELS_BOT_TOKEN", "").strip().strip("﻿")
     if not token:
         print("[skip] REELS_BOT_TOKEN не настроен — пропускаю сбор")
         return
